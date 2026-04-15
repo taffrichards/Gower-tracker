@@ -447,12 +447,16 @@ function buildJobCard(j){
   const pbt=!hasCosts?'No costs entered':'P&L: '+fmt(pnl.profit)+' · '+pnl.margin+'%';
   const scls=statusClass(j.status);
   const safeId='bd-'+j.id.replace(/[^a-zA-Z0-9]/g,'');
+  const safeCust=(j.customer||'Unnamed').replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+  const safeProd=(j.product||'—').replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+  const safeAddr=(j.address||'—').replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+  const safeNotes=(j.notes||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;');
   return '<div class="job-card '+cc+'">'+
     '<div class="card-header" onclick="toggleCard(\''+safeId+'\')">'+
     '<div style="flex:1;min-width:0">'+
     '<div class="card-ref">'+(j.ref||'')+'</div>'+
-    '<div class="card-name">'+(j.customer||'Unnamed')+'</div>'+
-    '<div class="card-product">'+(j.product||'—')+'</div>'+
+    '<div class="card-name">'+safeCust+'</div>'+
+    '<div class="card-product">'+safeProd+'</div>'+
     '<div class="card-pnl-badge '+pbc+'">'+pbt+'</div>'+
     '</div>'+
     '<div class="card-date-box">'+
@@ -462,7 +466,7 @@ function buildJobCard(j){
     '</div></div>'+
     '<div class="card-body" id="'+safeId+'">'+
     '<div class="card-section-label">📋 Job Info</div>'+
-    '<div class="card-row"><span class="lbl">Address</span><span class="val">'+(j.address||'—')+'</span></div>'+
+    '<div class="card-row"><span class="lbl">Address</span><span class="val">'+safeAddr+'</span></div>'+
     '<div class="card-row"><span class="lbl">Installer</span><span class="val">'+(j.installer||'—')+'</span></div>'+
     '<div class="card-row"><span class="lbl">Status</span><span class="val"><span class="status-pill '+scls+'">'+(j.status||'—')+'</span></span></div>'+
     '<div class="card-section-label">💷 Revenue</div>'+
@@ -480,7 +484,7 @@ function buildJobCard(j){
       '<div style="margin:8px 0 4px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--grey-400)">Margin</span><span style="font-weight:700;color:'+(pnl.margin<0?'var(--red)':pnl.margin<20?'var(--amber)':'var(--green)')+'">'+pnl.margin+'%</span></div><div class="pnl-bar-wrap"><div class="pnl-bar'+(pnl.margin<20?' low':pnl.margin<40?' mid':'')+'" style="width:'+Math.max(0,Math.min(100,pnl.margin))+'%"></div></div></div>'+
       '<div class="card-row"><span class="lbl" style="font-weight:700">Net Profit</span><span class="val '+(pnl.profit>=0?'profit':'loss')+'">'+fmt(pnl.profit)+'</span></div>'
     :'<div class="card-row"><span class="lbl">No costs entered yet</span><span class="val" style="color:var(--grey-400)">Tap Edit</span></div>')+
-    (j.notes?'<div class="card-section-label">📝 Notes</div><div class="card-row"><span class="lbl">'+j.notes+'</span></div>':'')+
+    (j.notes?'<div class="card-section-label">📝 Notes</div><div class="card-row"><span class="lbl">'+safeNotes+'</span></div>':'')+
     '<div class="card-actions">'+
     '<button class="btn-edit" onclick="editJob(\''+j.id+'\')">✏️ Edit</button>'+
     '<button class="btn-delete" onclick="deleteJob(\''+j.id+'\')">🗑 Delete</button>'+
@@ -649,10 +653,12 @@ async function deleteJob(id){
 function editJob(id){const j=jobs.find(j=>j.id===id);if(j)openJobModal(j);}
 
 function switchTab(tab){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('panel-'+tab).classList.add('active');
+  try{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.getElementById('tab-'+tab).classList.add('active');
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-'+tab).classList.add('active');
+  }catch(e){console.error('Tab error:',e);}
 }
 
 function setFilter(el,f){
